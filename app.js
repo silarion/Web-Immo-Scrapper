@@ -20,7 +20,7 @@ cradle.setup({
     forceSave: true,
     auth: { username: settings.db_user, password: settings.db_password }
 });
-var db = new(cradle.Connection)().database('immobilier');
+var db = new(cradle.Connection)().database(settings.db_name);
 
 var app = express();
 
@@ -39,22 +39,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/users', users);
 
-app.get('/scrape', function(req, res){
-    // The URL we will scrape from - in our example Anchorman 2.
+app.get('/list', function(req, res){
 
-    url = 'http://www.leboncoin.fr/ventes_immobilieres/offres/lorraine/moselle/?f=a&th=1&sqs=12&ret=1&ret=2&location=Metz%2057000';
-
-    // The structure of our request call
-    // The first parameter is our URL
-    // The callback function takes 3 parameters, an error, response status code and the html
-
+    //db.all(function (err, document) {
+    //    res.send(document)
+    //});
     var myresponse = [];
-
-    db.all(function (err, document) {
-        myresponse.push(document);
-        res.send(myresponse)
+    db.view('annonces/all', function (err, docs) {
+        if(err){
+            console.log('error', err);
+            res.send(err)
+        }else {
+            docs.forEach(function (row) {
+                console.log("%s", row.title);
+                myresponse.push(row);
+            });
+            res.send(myresponse)
+        }
     });
-
 
 })
 
@@ -93,9 +95,9 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-app.listen('8081')
+app.listen(settings.server_port)
 
-console.log('Magic happens on port 8081');
+console.log('Magic happens on port ' + settings.server_port);
 
 
 

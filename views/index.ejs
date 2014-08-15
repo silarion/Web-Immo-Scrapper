@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="annoncesApp">
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.11/angular.min.js"></script>
+    <script src="javascripts/controllers.js"></script>
   </head>
   <body>
     <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+
+    <div ng-controller="AnnoncesList">
+        <ul>
+          <li ng-repeat="annonce in annonces">
+            <h1>{{annonce.title}}</h1>
+            <p>{{annonce.description}}</p>
+          </li>
+        </ul>
+    </div>
+
   </body>
 </html>
