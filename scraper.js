@@ -56,13 +56,12 @@ function leboncoin(url) {
                 }
             );
 
-           /* var lienPageSuivante = $('a[href]:contains(Page suivante)');
+            var lienPageSuivante = $('a[href]:contains(Page suivante)');
             if(lienPageSuivante){
                 url = lienPageSuivante.attr('href')
-                leboncoin(url);
             }else{
                 url = null;
-            }*/
+            }
 
             var annonces = $('.list-lbc a');
             var nbTrouves = annonces.length;
@@ -71,7 +70,12 @@ function leboncoin(url) {
                 complete: '=',
                 incomplete: ' ',
                 width: 20,
-                total: nbTrouves
+                total: nbTrouves,
+                callback: function(){
+                    if(url){
+                        leboncoin(url);
+                    }
+                }
             });
             annonces.each(function (index, elt) {
 
@@ -98,14 +102,22 @@ function leboncoin(url) {
                         var pieces = $(params[5]).text();
                         var surface = $(params[6]).text();
                         var description = $('.AdviewContent div.content').text().trim();
+                        try {
+                            if ($('div.lbcImages a').length > 0) {
+                                var image = $('div.lbcImages a').css('background-image');
+                                image = XRegExp.replace(image, /url\('(.+)'\)/, '$1');
+                            }
+                        }catch(ex){
+                            console.log('image error : ' + lien)
+                        }
 
                         var document = {
                             title: title, lien: lien, placement: placement, price: price, codepostal: codepostal, type: type, pieces: pieces, surface: surface, description: description
+                            , image: image
                         };
 
                         db.save(
-                            title
-                            , document
+                            document
                             , function (err, res) {
                                 if (err) {
                                     console.log('error', err);

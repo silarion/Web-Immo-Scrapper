@@ -51,7 +51,6 @@ app.get('/list', function(req, res){
             res.send(err)
         }else {
             docs.forEach(function (row) {
-                console.log("%s", row.title);
                 myresponse.push(row);
             });
             res.send(myresponse)

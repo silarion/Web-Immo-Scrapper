@@ -10,9 +10,18 @@
     <h1><%= title %></h1>
 
     <div ng-controller="AnnoncesList">
+
+        Search: <input ng-model="query">
+          Sort by:
+          <select ng-model="orderProp">
+            <option value="title">Title</option>
+            <option value="price">Price</option>
+          </select>
+
         <ul>
-          <li ng-repeat="annonce in annonces">
-            <h1>{{annonce.title}}</h1>
+          <li ng-repeat="annonce in annonces | filter:query | orderBy:orderProp">
+            <h2>{{annonce.title}} - {{annonce.price}}</h2>
+            <img src="{{annonce.image}}" />
             <p>{{annonce.description}}</p>
           </li>
         </ul>
