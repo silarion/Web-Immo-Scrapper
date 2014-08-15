@@ -10,6 +10,17 @@ var users = require('./routes/users');
 
 var request = require('request');
 var cheerio = require('cheerio');
+var settings = require('./configuration');
+
+var cradle = require('cradle');
+cradle.setup({
+    host: settings.db_host,
+    cache: true,
+    raw: false,
+    forceSave: true,
+    auth: { username: settings.db_user, password: settings.db_password }
+});
+var db = new(cradle.Connection)().database('immobilier');
 
 var app = express();
 
@@ -39,31 +50,11 @@ app.get('/scrape', function(req, res){
 
     var myresponse = [];
 
-    request(url, function(error, response, html){
+    db.all(function (err, document) {
+        myresponse.push(document);
+        res.send(myresponse)
+    });
 
-        // First we'll check to make sure no errors occurred when making the request
-
-        if(!error){
-            // Next, we'll utilize the cheerio library on the returned html which will essentially give us jQuery functionality
-
-            var $ = cheerio.load(html);
-
-            // Finally, we'll define the variables we're going to capture
-
-            $('.lbc').each(function(index, elt){
-
-                var title = $(elt).find('.title').text().trim();
-                var placement = $(elt).find('.placement').text().trim();
-                var price = $(elt).find('.price').text().trim();
-
-                myresponse.push({ title: title });
-                //console.log();
-            });
-
-            res.send(myresponse)
-
-        }
-    })
 
 })
 
