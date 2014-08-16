@@ -24,7 +24,7 @@ db.exists(function (err, exists) {
         console.log('database creation.');
         db.create();
     }
-    leboncoin('http://www.leboncoin.fr/ventes_immobilieres/offres/lorraine/moselle/?f=a&th=1&sqs=12&ret=1&ret=2&location=Metz%2057000');
+    leboncoin('http://www.leboncoin.fr/ventes_immobilieres/offres/lorraine/moselle/?f=a&th=1&sqs=11&ret=1&ret=2&location=Metz%2057000');
 
     db.save('_design/annonces', {
         all: {
@@ -102,10 +102,22 @@ function leboncoin(url) {
                         var pieces = $(params[5]).text();
                         var surface = $(params[6]).text();
                         var description = $('.AdviewContent div.content').text().trim();
+                        var images = [];
                         try {
                             if ($('div.lbcImages a').length > 0) {
                                 var image = $('div.lbcImages a').css('background-image');
                                 image = XRegExp.replace(image, /url\('(.+)'\)/, '$1');
+                                images.push({image:image})
+                            }
+                            if($('#thumbs_carousel a span').length > 0){
+                                $('#thumbs_carousel a span').each(function (index, elt) {
+                                    if(index != 0) {
+                                        var image = $(elt).css('background-image');
+                                        image = XRegExp.replace(image, /url\('(.+)'\)/, '$1');
+                                        image = XRegExp.replace(image, /thumbs/, 'images');
+                                        images.push({image: image})
+                                    }
+                                });
                             }
                         }catch(ex){
                             console.log('image error : ' + lien)
@@ -113,7 +125,7 @@ function leboncoin(url) {
 
                         var document = {
                             title: title, lien: lien, placement: placement, price: price, codepostal: codepostal, type: type, pieces: pieces, surface: surface, description: description
-                            , image: image
+                            , images: images
                         };
 
                         db.save(

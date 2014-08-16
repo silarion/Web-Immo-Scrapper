@@ -16,12 +16,20 @@
           <select ng-model="orderProp">
             <option value="title">Title</option>
             <option value="price">Price</option>
+            <option value="surface">Surface</option>
           </select>
 
         <ul>
           <li ng-repeat="annonce in annonces | filter:query | orderBy:orderProp">
-            <h2>{{annonce.title}} - {{annonce.price}}</h2>
-            <img src="{{annonce.image}}" />
+            <h2>
+                <a href="{{annonce.lien}}">
+                    {{annonce.title}}
+                </a> - {{annonce.price}}
+            </h2>
+            <div>
+                <img src="{{image.image}}" ng-repeat="image in annonce.images" style="float:left;" width="160" height="120" />
+            </div>
+            <br clear="both" />
             <p>{{annonce.description}}</p>
           </li>
         </ul>
