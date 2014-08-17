@@ -4,4 +4,10 @@ module.exports = {
     , db_host: "****"
     , db_name: "annonces_immo"
     , server_port: 8081
+    , cheerio: {
+        normalizeWhitespace: true,
+        xmlMode: false,
+        decodeEntities: true
+    }
+    , request: {timeout: 20000, encoding: null}
 }

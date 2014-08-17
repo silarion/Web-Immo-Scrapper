@@ -14,17 +14,22 @@
         Search: <input ng-model="query">
           Sort by:
           <select ng-model="orderProp">
-            <option value="title">Title</option>
-            <option value="price">Price</option>
+            <option value="title">Titre</option>
+            <option value="price">Prix</option>
             <option value="surface">Surface</option>
+            <option value="host">Site</option>
+            <option value="time">Date</option>
           </select>
 
         <ul>
           <li ng-repeat="annonce in annonces | filter:query | orderBy:orderProp">
             <h2>
+                <img src="{{annonce.favicon}}" alt="{{annonce.host}}" title="{{annonce.host}}" />
                 <a href="{{annonce.lien}}">
                     {{annonce.title}}
-                </a> - {{annonce.price}}
+                </a> - {{annonce.price}} - {{annonce.date}}
+                <br />
+                {{annonce.surface}} m²
             </h2>
             <div>
                 <img src="{{image.image}}" ng-repeat="image in annonce.images" style="float:left;" width="160" height="120" />
