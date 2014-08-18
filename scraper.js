@@ -180,6 +180,10 @@ function getInfosAnnonce($, host, lien) {
         case "www.leboncoin.fr" :
             title = $('h2#ad_subject').text().trim();
             price = $('.lbcParams tr.price td').text().trim();
+            var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
+            if(match && match.length > 1) {
+                price = match[1].replace(/ /g, '')
+            }
             placement = $('.lbcParams th:contains("Ville")').next().text().trim();
             codepostal = $('.lbcParams th:contains("Code postal")').next().text().trim();
             type = $('.lbcParams th:contains("Type de bien")').next().text().trim();
@@ -194,7 +198,7 @@ function getInfosAnnonce($, host, lien) {
             date = $('div.upload_by').text().trim();
             //date = moment(date, 'DD MMM hh:mm').format('DD/MM/YYYY hh:mm')
             //console.log(date + ' ' + lien + ' ' + $('div.upload_by').text().trim())
-            var match = XRegExp.exec(date, /le (\d+.+?)à (\d+:\d+)/ );
+            match = XRegExp.exec(date, /le (\d+.+?)à (\d+:\d+)/ );
             if(match && match.length > 1) {
                 date = match[1] + match[2];
                 date = moment(date, 'DD MMM hh:mm')
@@ -225,9 +229,13 @@ function getInfosAnnonce($, host, lien) {
             //price = $($('table td:contains("Prix")')[0]).next().text().trim();
             title = $('h1').text().trim();
             price = $($('table td:contains("Prix")')[0]).next().text().trim();
+            var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
+            if(match && match.length > 1) {
+                price = match[1].replace(/ /g, '')
+            }
             placement = $('table td:contains("Ville")').next().text().trim();
             codepostal = $('table td:contains("Code postal")').next().text().trim();
-            var match = XRegExp.exec(codepostal, /(\d{5})/);
+            match = XRegExp.exec(codepostal, /(\d{5})/);
             if(match && match.length > 1) {
                 codepostal = match[1];
             }
@@ -279,7 +287,7 @@ function getInfosAnnonce($, host, lien) {
 }
 
 function isExclude(document) {
-    var regex = XRegExp('(?is)(borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Thiaucourt|metz ouest|km de metz|Moulins-les-metz|MARSILLY|Dans village)');
+    var regex = XRegExp('(?is)(borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Prox.Metz|Prox. Metz|Thiaucourt|metz ouest|metz est|technopole|metz sud|sud de metz|Arnaville|km de metz|Moulins-les-metz|MARSILLY|Dans village|magny|Corny|Haraucourt|Ars sur Moselle|Mardigny|PONTOY|Village au calme|Vallières|minutes de metz|min de metz|mn de metz|WOIPPY|Metz-est|Proche de Metz|proche metz|est de metz|Ban St Martin|Norroy|Boulay|northen|LAQUENEXY|Saint-Julien|Mécleuves|frontière luxembourgeoise|TALANGE|MAIZIERES|saulcy|augny|longeville|CHEMINOT|Bridoux|ST JULIEN|BAN SAINT MARTIN)');
     if(regex.test(document.title + document.description)){
         return true;
     }
