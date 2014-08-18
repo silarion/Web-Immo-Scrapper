@@ -18,14 +18,14 @@
             <option value="price">Prix</option>
             <option value="surface">Surface</option>
             <option value="host">Site</option>
-            <option value="time">Date</option>
+            <option value="-time">Date</option>
           </select>
 
         <ul>
           <li ng-repeat="annonce in annonces | filter:query | orderBy:orderProp">
             <h2>
                 <img src="{{annonce.favicon}}" alt="{{annonce.host}}" title="{{annonce.host}}" />
-                <a href="{{annonce.lien}}">
+                <a href="{{annonce.lien}}" target="_blank">
                     {{annonce.title}}
                 </a> - {{annonce.price}} - {{annonce.date}}
                 <br />

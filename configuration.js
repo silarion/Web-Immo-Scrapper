@@ -9,5 +9,5 @@ module.exports = {
         xmlMode: false,
         decodeEntities: true
     }
-    , request: {timeout: 20000, encoding: null}
+    , request: {timeout: 200000, encoding: null}
 }

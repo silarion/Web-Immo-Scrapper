@@ -7,6 +7,13 @@ var settings = require('./configuration');
 var moment = require('moment');
 moment.locale('fr')
 
+var bar = new ProgressBar('  [:bar] :current/:total :elapseds', {
+    complete: '=',
+    incomplete: ' ',
+    width: 100,
+    total: 0
+});
+
 cradle.setup({
     host: settings.db_host,
     cache: true,
@@ -68,26 +75,17 @@ function search(url, host) {
             );
 
             var nextPage = getPageSuivante($, host);
+            if(nextPage){
+                search(nextPage, host)
+            }
 
             var annonces = getAnnonces($, host);
             var nbTrouves = annonces.length;
-            var bar = new ProgressBar('  [:bar] :current/:total :elapseds', {
-                complete: '=',
-                incomplete: ' ',
-                width: 20,
-                total: nbTrouves,
-                callback: function(){
-                    if(nextPage){
-                        search(nextPage, host);
-                    }
-                }
-            });
+            bar.total = bar.total + nbTrouves;
+
             annonces.each(function (index, elt) {
 
                 var lien = getLienAnnonce($(elt), host)
-                //var title = $(elt).attr('title').trim();
-                //var placement = $(elt).find('.placement').text().trim();
-                //var price = $(elt).find('.price').text().trim();
 
                 request(lien, getRequestSettings(host), function (error, response, html) {
                     if (error) {
@@ -111,7 +109,6 @@ function search(url, host) {
                                 }
                             );
                         }else{
-                            //console.log(lien)
                             bar.total = bar.total - 1;
                         }
 
@@ -247,7 +244,7 @@ function getInfosAnnonce($, host, lien) {
             match = XRegExp.exec(date, /(\d{2}\/\d{2}\/\d{4})/ );
             if(match && match.length > 1) {
                 date = match[1];
-                date = moment(date, 'DD/MMM/YYYY')
+                date = moment(date, 'DD/MM/YYYY')
                 time = date.valueOf();
                 date = date.format('DD/MM/YYYY');
             }
@@ -282,7 +279,7 @@ function getInfosAnnonce($, host, lien) {
 }
 
 function isExclude(document) {
-    var regex = XRegExp('(?is)(borny|plappeville)');
+    var regex = XRegExp('(?is)(borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Thiaucourt|metz ouest|km de metz|Moulins-les-metz|MARSILLY|Dans village)');
     if(regex.test(document.title + document.description)){
         return true;
     }
