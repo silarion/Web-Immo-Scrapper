@@ -24,8 +24,9 @@ cradle.setup({
 
 var urls = ['http://www.leboncoin.fr/ventes_immobilieres/offres/lorraine/moselle/?f=a&th=1&sqs=11&ret=1&ret=2&location=Metz%2057000'
     , 'http://search.vivastreet.com/annonces-achat-vente-appartement+metz-57000?lb=new&search=1&start_field=1&keywords=&cat_1=88&cat_2=&sp_common_price%5Bstart%5D=&sp_common_price%5Bend%5D=&sp_housing_nb_rooms%5Bstart%5D=&sp_housing_nb_rooms%5Bend%5D=&sp_housing_sq_ft%5Bstart%5D=&sp_housing_sq_ft%5Bend%5D=&geosearch_text=Metz+-+57000&geo_radial_distance=0&searchGeoId=30471&end_field='
-    , 'http://www.logic-immo.com/vente-immobilier-metz-57000,20369_2-c000000000-0,0-100,0-0,0-00-00-000000000000-00-0-0-3-0-0-1.html'];
-//urls = [urls[2]];
+    , 'http://www.logic-immo.com/vente-immobilier-metz-57000,20369_2-c000000000-0,0-100,0-0,0-00-00-000000000000-00-0-0-3-0-0-1.html'
+    , 'http://www.topannonces.fr/vente-immobilier/annonces-vente-maison-metz-57000-u23c22126.html?FlatCriterias=P_IMO_SURFACE%4085%3Dmt%3B100%7CP_TRA_PRICE%40137%3Dbtw%3B250000%3B600000'];
+//urls = [urls[3]];
 
 var db = new(cradle.Connection)().database(settings.db_name);
 db.exists(function (err, exists) {
@@ -163,12 +164,18 @@ function getAnnonces($, host) {
         case "www.logic-immo.com" :
             return $('a[href*=detail-vente]');
             break;
+        case "www.topannonces.fr" :
+            return $('.classifiedTitre a');
+            break;
     }
 }
 
 /*lien d'une annonce sur la page de recherche*/
 function getLienAnnonce(elt, host) {
     switch(host){
+        case "www.topannonces.fr" :
+            return 'http://' + host + elt.attr('href');
+            break;
         default :
             return elt.attr('href');
             break;
@@ -191,13 +198,9 @@ function getInfosAnnonce($, host, lien) {
     switch(host){
         case "www.leboncoin.fr" :
             title = $('h2#ad_subject').text().trim();
-            price = $('.lbcParams tr.price td').text().trim();
-            var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
-            if(match && match.length > 1) {
-                price = match[1].replace(/ /g, '')
-            }
+            price = getPrice($('.lbcParams tr.price td'));
             placement = $('.lbcParams th:contains("Ville")').next().text().trim();
-            codepostal = $('.lbcParams th:contains("Code postal")').next().text().trim();
+            codepostal = getCodePostal($('.lbcParams th:contains("Code postal")').next());
             type = $('.lbcParams th:contains("Type de bien")').next().text().trim();
             pieces = $('.lbcParams th:contains("Pièces")').next().text().trim();
             surface = $('.lbcParams th:contains("Surface")').next().text().trim();
@@ -240,17 +243,9 @@ function getInfosAnnonce($, host, lien) {
         case "search.vivastreet.com" :
             //price = $($('table td:contains("Prix")')[0]).next().text().trim();
             title = $('h1').text().trim();
-            price = $($('table td:contains("Prix")')[0]).next().text().trim();
-            var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
-            if(match && match.length > 1) {
-                price = match[1].replace(/ /g, '')
-            }
+            price = getPrice($($('table td:contains("Prix")')[0]).next());
             placement = $('table td:contains("Ville")').next().text().trim();
-            codepostal = $('table td:contains("Code postal")').next().text().trim();
-            match = XRegExp.exec(codepostal, /(\d{5})/);
-            if(match && match.length > 1) {
-                codepostal = match[1];
-            }
+            codepostal = getCodePostal($('table td:contains("Code postal")').next());
             type = null;
             pieces = $('table td:contains("Nbre de pièces")').next().text().trim();
             surface = $('table td:contains("Surface")').next().text().trim();
@@ -284,17 +279,9 @@ function getInfosAnnonce($, host, lien) {
             break;
         case "www.logic-immo.com" :
             title = $('span#title-type').text().trim();
-            price = $('span[itemprop=price]').text().trim();
-            var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
-            if(match && match.length > 1) {
-                price = match[1].replace(/ /g, '')
-            }
+            price = getPrice($('span[itemprop=price]'));
             placement = $('span#title-locality').text().trim();
-            //codepostal = $('span#title-locality').text().trim();
-            match = XRegExp.exec(placement, /(\d{5})/);
-            if(match && match.length > 1) {
-                codepostal = match[1];
-            }
+            codepostal = getCodePostal($('span#title-locality'));
             type = $('span#title-type').text().trim();
             pieces = $('title').text().trim();
             match = XRegExp.exec(pieces, /(\d) pièces/ );
@@ -333,6 +320,36 @@ function getInfosAnnonce($, host, lien) {
                 console.log('image error : ' + lien)
             }
             break;
+        case "www.topannonces.fr" :
+            title = $('.detailTitle h2').text().trim();
+            price = getPrice($('.price'));
+            placement = $('.detailVille').text().trim()
+            codepostal = getCodePostal($('table td:contains("Code Postal")').next());
+            type = null
+            pieces = $('table td:contains("Nombre de pièces")').next().text().trim();
+            surface = $('table td:contains("Surface en m2")').next().text().trim();
+            description = $('p.detailAnnonce').text().trim();
+            favicon = 'http://cdn.topannonces.fr/Content/img/favicon.ico'
+            date = $('.detailDate').text().trim();
+            match = XRegExp.exec(date, /le (\d+.+?\d{4})/ );
+            if(match && match.length > 1) {
+                date = match[1];
+                date = moment(date, 'DD MMM YYYY')
+                time = date.valueOf();
+                date = date.format('DD/MM/YYYY');
+            }
+            try {
+                if($('#photoList img').length > 0){
+                    images.push({image: $('#bigpic').attr('src')})
+                    $('#photoList img').each(function (index, elt) {
+                        var image = $(elt).attr('rel');
+                        images.push({image: image})
+                    });
+                }
+            }catch(ex){
+                console.log('image error : ' + lien)
+            }
+            break;
         default :
             return null;
     }
@@ -351,8 +368,26 @@ function getInfosAnnonce($, host, lien) {
 
 }
 
+function getPrice(node){
+    var price = node.text().trim();
+    var match = XRegExp.exec(price, /((?:\d+\s*)+)/ );
+    if(match && match.length > 1) {
+        price = match[1].replace(/ /g, '')
+    }
+    return price;
+}
+
+function getCodePostal(node){
+    var codepostal = node.text().trim();
+    var match = XRegExp.exec(codepostal, /(\d{5})/);
+    if(match && match.length > 1) {
+        codepostal = match[1];
+    }
+    return codepostal;
+}
+
 function isExclude(document) {
-    var regex = XRegExp('(?is)(aubigny|la maxe|borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Prox.Metz|Prox. Metz|Thiaucourt|metz ouest|metz est|technopole|metz sud|sud de metz|Arnaville|km de metz|Moulins-les-metz|MARSILLY|Dans village|magny|Corny|Haraucourt|Ars sur Moselle|Mardigny|PONTOY|Village au calme|Vallières|minutes de metz|min de metz|mn de metz|WOIPPY|Metz-est|Proche de Metz|proche metz|est de metz|Ban St Martin|Norroy|Boulay|northen|LAQUENEXY|Saint-Julien|Mécleuves|frontière luxembourgeoise|TALANGE|MAIZIERES|saulcy|augny|longeville|CHEMINOT|Bridoux|ST JULIEN|BAN SAINT MARTIN|Moulins Les Metz)');
+    var regex = XRegExp('(?is)(kms de Metz|lorry|vantoux|aubigny|la maxe|borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Prox.Metz|Prox. Metz|Thiaucourt|metz ouest|metz est|technopole|metz sud|sud de metz|Arnaville|km de metz|Moulins-les-metz|MARSILLY|Dans village|magny|Corny|Haraucourt|Ars sur Moselle|Mardigny|PONTOY|Village au calme|Vallières|minutes de metz|min de metz|mn de metz|WOIPPY|Metz-est|Proche de Metz|proche metz|est de metz|Ban St Martin|Norroy|Boulay|northen|LAQUENEXY|Saint-Julien|Mécleuves|frontière luxembourgeoise|TALANGE|MAIZIERES|saulcy|augny|longeville|CHEMINOT|Bridoux|ST JULIEN|BAN SAINT MARTIN|Moulins Les Metz)');
     if(regex.test(document.title + document.description)){
         return true;
     }
@@ -360,6 +395,9 @@ function isExclude(document) {
         return true;
     }
     if(Number(document.surface) < 100){
+        return true;
+    }
+    if(Number(document.price) < 250000 || Number(document.price) > 600000){
         return true;
     }
     return false;
