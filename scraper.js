@@ -25,8 +25,11 @@ cradle.setup({
 var urls = ['http://www.leboncoin.fr/ventes_immobilieres/offres/lorraine/moselle/?f=a&th=1&sqs=11&ret=1&ret=2&location=Metz%2057000'
     , 'http://search.vivastreet.com/annonces-achat-vente-appartement+metz-57000?lb=new&search=1&start_field=1&keywords=&cat_1=88&cat_2=&sp_common_price%5Bstart%5D=&sp_common_price%5Bend%5D=&sp_housing_nb_rooms%5Bstart%5D=&sp_housing_nb_rooms%5Bend%5D=&sp_housing_sq_ft%5Bstart%5D=&sp_housing_sq_ft%5Bend%5D=&geosearch_text=Metz+-+57000&geo_radial_distance=0&searchGeoId=30471&end_field='
     , 'http://www.logic-immo.com/vente-immobilier-metz-57000,20369_2-c000000000-0,0-100,0-0,0-00-00-000000000000-00-0-0-3-0-0-1.html'
-    , 'http://www.topannonces.fr/vente-immobilier/annonces-vente-maison-metz-57000-u23c22126.html?FlatCriterias=P_IMO_SURFACE%4085%3Dmt%3B100%7CP_TRA_PRICE%40137%3Dbtw%3B250000%3B600000'];
-//urls = [urls[3]];
+    , 'http://www.topannonces.fr/vente-immobilier/annonces-vente-maison-metz-57000-u23c22126.html?FlatCriterias=P_IMO_SURFACE%4085%3Dmt%3B100%7CP_TRA_PRICE%40137%3Dbtw%3B250000%3B600000'
+    , 'http://www.fnaim.fr/17-acheter.htm?MOT_CLE=METZ+%2857000%29&ID_LOCALITE=23852&TYPE_LOCALITE=3&TYPE%5B%5D=2&TYPE%5B%5D=1&DISTANCE=&SURFACE_MIN=100&PRIX_MAX=&Find=Rechercher&TRANSACTION=1&idtf=17'];
+
+//pour tester dernier ajout
+//urls = [urls[urls.length-1]];
 
 var db = new(cradle.Connection)().database(settings.db_name);
 db.exists(function (err, exists) {
@@ -148,8 +151,17 @@ function getPageSuivante($, host) {
                 lienPageSuivante = null
             }
             break;
+        case "www.fnaim.fr" :
+            lienPageSuivante = $('.regletteNavigation .selected').next().find('a')
+            break;
     }
-    return lienPageSuivante ? (lienPageSuivante.attr ? lienPageSuivante.attr('href') : lienPageSuivante.href) : null;
+
+    lienPageSuivante = lienPageSuivante ? (lienPageSuivante.attr ? lienPageSuivante.attr('href') : lienPageSuivante.href) : null;
+    if(lienPageSuivante && lienPageSuivante.indexOf('http://') < 0){
+        lienPageSuivante = 'http://' + host + lienPageSuivante
+    }
+    //console.log(lienPageSuivante)
+    return lienPageSuivante;
 }
 
 /*annonces de la page de recherche*/
@@ -167,22 +179,32 @@ function getAnnonces($, host) {
         case "www.topannonces.fr" :
             return $('.classifiedTitre a');
             break;
+        case "www.fnaim.fr" :
+            return $('.itemContent h3 a');
+            break;
     }
 }
 
 /*lien d'une annonce sur la page de recherche*/
 function getLienAnnonce(elt, host) {
+    var lien = null;
     switch(host){
+        case "www.fnaim.fr" :
         case "www.topannonces.fr" :
-            return 'http://' + host + elt.attr('href');
+            lien = 'http://' + host + elt.attr('href');
             break;
         default :
-            return elt.attr('href');
+            lien = elt.attr('href');
             break;
     }
+    //console.log(lien)
+    return lien
 }
 
 function getInfosAnnonce($, host, lien) {
+    //pour regexp
+    var match
+
     var title = "title";
     var price = "price";
     var placement = "placement";
@@ -343,6 +365,35 @@ function getInfosAnnonce($, host, lien) {
                     images.push({image: $('#bigpic').attr('src')})
                     $('#photoList img').each(function (index, elt) {
                         var image = $(elt).attr('rel');
+                        images.push({image: image})
+                    });
+                }
+            }catch(ex){
+                console.log('image error : ' + lien)
+            }
+            break;
+        case "www.fnaim.fr" :
+            title = $('[itemprop=name]').attr('content')
+            price = getPrice($('.info h3'));
+            placement = $('[itemprop=addresslocality]').attr('content')
+            codepostal = getCodePostal($('[itemprop=itemoffered]'));
+            type = $('[itemprop=model]').attr('content')
+            match = XRegExp.exec(title, /(\d+) pièce/ );
+            if(match && match.length > 1) {
+                pieces = match[1]
+            }
+            match = XRegExp.exec(title, /(\d+) m²/ );
+            if(match && match.length > 1) {
+                surface = match[1]
+            }
+            description = $('[itemprop=description]').text().trim()
+            favicon = 'http://www.fnaim.fr/uploads/Image/8a/SIT_FNAIM_166_favicon.ico'
+            date = null
+            try {
+                if($('#carousel img').length > 0){
+                    //images.push({image: $('#bigpic').attr('src')})
+                    $('#carousel img').each(function (index, elt) {
+                        var image = $(elt).attr('src');
                         images.push({image: image})
                     });
                 }
