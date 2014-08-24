@@ -18,6 +18,7 @@
     "request": "2.39.0",
     "cradle": "0.6.7",
     "xregexp": "2.0.0",
-    "progress": "1.1.8"
+    "progress": "1.1.8",
+    "moment": "2.8.2"
   }
 }
