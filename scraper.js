@@ -71,7 +71,7 @@ function search(url, host) {
     request(url, getRequestSettings(host), function (error, response, html) {
 
         if (error) {
-            console.log('error', error);
+            console.log('error', url, error);
         } else {
             // Next, we'll utilize the cheerio library on the returned html which will essentially give us jQuery functionality
 
@@ -96,7 +96,7 @@ function search(url, host) {
 
                 request(lien, getRequestSettings(host), function (error, response, html) {
                     if (error) {
-                        console.log('error', error);
+                        console.log('error', lien, error);
                     } else {
                         var $ = cheerio.load(
                             html,
@@ -110,7 +110,7 @@ function search(url, host) {
                                 document
                                 , function (err, res) {
                                     if (err) {
-                                        console.log('error', err);
+                                        console.log('error db save', err);
                                     }
                                     bar.tick();
                                 }
