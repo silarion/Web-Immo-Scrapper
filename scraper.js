@@ -438,20 +438,25 @@ function getCodePostal(node){
 }
 
 function isExclude(document) {
-    var regex = XRegExp('(?is)(kms de Metz|lorry|vantoux|aubigny|la maxe|borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Prox.Metz|Prox. Metz|Thiaucourt|metz ouest|metz est|technopole|metz sud|sud de metz|Arnaville|km de metz|Moulins-les-metz|MARSILLY|Dans village|magny|Corny|Haraucourt|Ars sur Moselle|Mardigny|PONTOY|Village au calme|Vallières|minutes de metz|min de metz|mn de metz|WOIPPY|Metz-est|Proche de Metz|proche metz|est de metz|Ban St Martin|Norroy|Boulay|northen|LAQUENEXY|Saint-Julien|Mécleuves|frontière luxembourgeoise|TALANGE|MAIZIERES|saulcy|augny|longeville|CHEMINOT|Bridoux|ST JULIEN|BAN SAINT MARTIN|Moulins Les Metz)');
+    var exclude = false;
+    var regex = XRegExp('(?is)(ventoux|Axe Metz Nancy|kms de Metz|lorry|vantoux|aubigny|la maxe|borny|plappeville|Mercy|Claude bernard|Schweitzer|Lessy|marly|Metz devant les ponts|QUEULEU|cathedrale|maison de village|chambley|Rembercourt|VALLIERES|Plantières|PLANTIERES|nouilly|Amanvillers|Prox .Metz|Prox.Metz|Prox. Metz|Thiaucourt|metz ouest|metz est|technopole|metz sud|sud de metz|Arnaville|km de metz|Moulins-les-metz|MARSILLY|Dans village|magny|Corny|Haraucourt|Ars sur Moselle|Mardigny|PONTOY|Village au calme|Vallières|minutes de metz|min de metz|mns de Metz|mn de metz|WOIPPY|Metz-est|Proche de Metz|proche metz|est de metz|Ban St Martin|Norroy|Boulay|northen|LAQUENEXY|Saint-Julien|Mécleuves|frontière luxembourgeoise|TALANGE|MAIZIERES|saulcy|augny|longeville|CHEMINOT|Bridoux|ST JULIEN|BAN SAINT MARTIN|Moulins Les Metz)');
     if(regex.test(document.title + document.description)){
-        return true;
+        exclude = true;
+        regex = XRegExp('(?is)(therese|thérèse|gare)');
+        if(regex.test(document.title + document.description)){
+            exclude = false;
+        }
     }
     if(document.codepostal && document.codepostal != "57000"){
-        return true;
+        exclude = true;
     }
     if(Number(document.surface) < 100){
-        return true;
+        exclude = true;
     }
     if(Number(document.price) < 250000 || Number(document.price) > 600000){
-        return true;
+        exclude = true;
     }
-    return false;
+    return exclude;
 }
 
 function getRequestSettings(host) {
