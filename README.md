@@ -1,5 +1,5 @@
-Outil de scan de sites immobilier
-==============
+Outil de scan de sites immobiliers
+==================================
 
 Cet outil scanne des sites immobiliers pour stocker les annonces en DB
 
